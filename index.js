@@ -1,6 +1,19 @@
 const express = require('express')
 const app = express()
+
+// Let's implement our own middleware that prints information about every request that is sent to the server.
+const requestLogger = (request, response, next) => {
+  console.log('Method:', request.method)
+  console.log('Path:  ', request.path)
+  console.log('Body:  ', request.body)
+  console.log('---')
+  next()
+}
+
 app.use(express.json())
+
+app.use(requestLogger)
+
 
 
 let notes = [
@@ -27,6 +40,13 @@ let notes = [
 //   response.writeHead(200, { 'Content-Type': 'application/json' })
 //   response.end(JSON.stringify(notes))
 // })
+
+const generateId = () => {
+    const maxId = notes.length > 0
+      ? Math.max(...notes.map(n => n.id))
+      : 0
+    return maxId + 1
+  }
 
 app.get('/', (request, response) => {
     response.send('<h1>Hello World!</h1>')
@@ -81,6 +101,13 @@ app.post('/api/notes', (request, response) => {
 
   response.json(note)
 })
+
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+
+app.use(unknownEndpoint)
 
 const PORT = 3001
 app.listen(PORT, () => {
